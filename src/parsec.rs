@@ -212,6 +212,7 @@ impl<T: NetworkEvent, S: SecretId> Parsec<T, S> {
         self.confirm_self_state(PeerState::VOTE)?;
 
         if self.have_voted_for(&observation) {
+            println!("{:?} duplicate vote {:?}", self.our_pub_id(), observation);
             return Err(Error::DuplicateVote);
         }
 

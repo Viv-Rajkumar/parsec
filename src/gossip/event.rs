@@ -488,7 +488,8 @@ fn index_by_creator_and_last_ancestors<T: NetworkEvent, S: SecretId>(
                 }
             }
         } else {
-            debug!(
+            // debug!(
+            println!(
                 "{:?} missing other parent for {:?}",
                 peer_list.our_id().public_id(),
                 content
