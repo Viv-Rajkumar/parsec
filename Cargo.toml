@@ -48,4 +48,3 @@ required-features = ["mock"]
 [[bench]]
 name = "bench"
 harness = false
-required-features = ["testing"]
