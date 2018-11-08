@@ -888,4 +888,10 @@ mod tests {
         }
         assert_ne!(num_of_files, 0u8);
     }
+
+    // TODO: remove this
+    #[test]
+    fn temp() {
+        unwrap!(parse_dot_file("input_graphs/benches/dynamic.dot"));
+    }
 }

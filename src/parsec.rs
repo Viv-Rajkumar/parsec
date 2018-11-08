@@ -556,6 +556,10 @@ impl<T: NetworkEvent, S: SecretId> Parsec<T, S> {
     }
 
     fn process_event(&mut self, event_hash: &Hash) -> Result<()> {
+        if self.peer_list.our_state() == PeerState::inactive() {
+            return Ok(());
+        }
+
         let elections: Vec<_> = self.meta_elections.all().collect();
         for election in elections {
             self.advance_meta_election(election, event_hash)?;
@@ -566,7 +570,7 @@ impl<T: NetworkEvent, S: SecretId> Parsec<T, S> {
         if let Some(payload) = self.compute_consensus(MetaElectionHandle::CURRENT, event_hash) {
             self.output_consensus_info(&payload);
 
-            let restart = self.handle_self_consensus(&payload) == PostConsensusAction::Continue;
+            let restart = self.handle_self_consensus(&payload) == PostConsensusAction::Restart;
             if creator != *self.our_pub_id() {
                 self.handle_peer_consensus(&creator, &payload);
             }
@@ -656,7 +660,8 @@ impl<T: NetworkEvent, S: SecretId> Parsec<T, S> {
                 self.handle_remove_peer(offender)
             }
             Observation::Genesis(_) | Observation::OpaquePayload(_) => {
-                PostConsensusAction::Continue
+                // PostConsensusAction::Continue
+                PostConsensusAction::Restart
             }
         }
     }
@@ -697,7 +702,7 @@ impl<T: NetworkEvent, S: SecretId> Parsec<T, S> {
             self.peer_list.add_peer(peer_id.clone(), state);
         }
 
-        PostConsensusAction::Continue
+        PostConsensusAction::Restart
     }
 
     fn handle_remove_peer(&mut self, peer_id: &S::PublicId) -> PostConsensusAction {
@@ -705,9 +710,9 @@ impl<T: NetworkEvent, S: SecretId> Parsec<T, S> {
         self.meta_elections.handle_peer_removed(peer_id);
 
         if *peer_id == *self.our_pub_id() {
-            PostConsensusAction::Stop
-        } else {
             PostConsensusAction::Continue
+        } else {
+            PostConsensusAction::Restart
         }
     }
 
@@ -1834,7 +1839,7 @@ struct ObservationInfo {
 #[derive(PartialEq, Eq)]
 enum PostConsensusAction {
     Continue,
-    Stop,
+    Restart,
 }
 
 #[cfg(all(test, feature = "testing"))]
